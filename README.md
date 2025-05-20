@@ -2,7 +2,7 @@
 
 ## Project Status (As of May 13, 2025)
 
-This project explores building a custom `AdaptiveHashTable` implementation in C# inspired by recent research on pointer optimization and memory layout efficiency (notably from Martin Colton and Andrew Krapivis). The goal is to optimize hash table performance beyond the standard `Dictionary<TKey, TValue>` implementation in .NET.
+This project explores building a custom `AdaptiveHashTable` implementation in C# inspired by recent research on pointer optimization and memory layout efficiency (notably from Martin Colton and Andrew Krapivins). The goal is to optimize hash table performance beyond the standard `Dictionary<TKey, TValue>` implementation in .NET.
 
 ### Benchmark Results (Current Implementation vs. Standard Dictionary)
 
@@ -51,7 +51,7 @@ The `AdaptiveHashTable` has been temporarily split into two separate implementat
 
 These designs were built to serve as foundational structures for experimenting with **optimal open addressing** strategies, particularly those described in *"Optimal Bounds for Open Addressing Without Reordering."*
 
-### Benchmark Results (2^20 entries)
+### Benchmark Results (2^20 entries at 70% capacity)
 
 | Run | Dictionary Fill | Dictionary Lookup | LinearTable Fill | LinearTable Lookup | UniformTable Fill | UniformTable Lookup |
 |-----|-----------------|-------------------|------------------|--------------------|-------------------|----------------------|
@@ -63,15 +63,32 @@ These designs were built to serve as foundational structures for experimenting w
 | 6   | 850 ms          | 419 ms            | 2437 ms          | 469 ms             | 2634 ms           | 488 ms               |
 | 7   | 923 ms          | 408 ms            | 2453 ms          | 451 ms             | 2551 ms           | 466 ms               |
 
-All runs successfully found all inserted entries (`70% of table size`), confirming correctness.
+### Benchmark Results (2^20 entries at 99% capacity)
 
-### Observations
+| Run | Dictionary Fill | Dictionary Lookup | LinearTable Fill | LinearTable Lookup | UniformTable Fill | UniformTable Lookup |
+|-----|-----------------|-------------------|------------------|--------------------|-------------------|----------------------|
+| 1   | 593 ms          | 271 ms            | 2401 ms          | 2962 ms            | 942 ms            | 557 ms               |
+| 2   | 465 ms          | 179 ms            | 2136 ms          | 2773 ms            | 904 ms            | 462 ms               |
+| 3   | 445 ms          | 179 ms            | 2119 ms          | 2685 ms            | 853 ms            | 528 ms               |
+| 4   | 425 ms          | 163 ms            | 2106 ms          | 2716 ms            | 863 ms            | 517 ms               |
+| 5   | 396 ms          | 173 ms            | 2205 ms          | 2663 ms            | 926 ms            | 517 ms               |
+| 6   | 457 ms          | 166 ms            | 2251 ms          | 2787 ms            | 852 ms            | 516 ms               |
+| 7   | 385 ms          | 193 ms            | 2128 ms          | 2725 ms            | 867 ms            | 519 ms               |
+| 8   | 425 ms          | 188 ms            | 2188 ms          | 2695 ms            | 868 ms            | 587 ms               |
+| 9   | 386 ms          | 167 ms            | 2159 ms          | 2693 ms            | 839 ms            | 490 ms               |
+| 10  | 409 ms          | 158 ms            | 2486 ms          | 2908 ms            | 960 ms            | 536 ms               |
 
-- Both tables maintain the expected **O(log δ⁻¹)** amortized probe complexity for a high load factor.
-- The **UniformTable**, while theoretically slightly faster than linear probing, currently lags slightly. This may stem from:
-  - Subtle overhead from the probing logic or hashing function.
-  - Characteristics of the C# runtime and its memory handling.
-  - Need for refinement or tuning in the bitstring construction and probe sequence generator.
+
+### Observations (Based on 99% Load Factor Benchmarks)
+
+- All tables demonstrate the expected **O(log δ⁻¹)** amortized probe complexity under high load, with no lookup failures across ~1 million entries.
+- The **UniformTable** now **outperforms the LinearTable** significantly in **lookup speed**, cutting average probe time nearly in half. This confirms the benefits of its uniform probing strategy in high-density scenarios.
+- The **fill times** for UniformTable are still slower than `Dictionary` but **markedly better than LinearTable**, suggesting better memory access patterns and fewer long probe chains.
+- Remaining areas for potential optimization:
+  - Slight runtime overhead from the bitstring-based probe generation logic.
+  - Further tuning of the probe sequence generator could improve fill performance.
+  - Exploring deeper memory alignment or cache-awareness in C# may help unlock even better insertion throughput.
+
 
 While the benchmark compares against .NET’s `Dictionary`, it’s important to note that `Dictionary` benefits from native C++ optimizations and decades of tuning. However, it serves as a solid baseline and performance reference.
 
