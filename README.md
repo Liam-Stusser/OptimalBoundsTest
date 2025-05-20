@@ -51,17 +51,21 @@ The `AdaptiveHashTable` has been temporarily split into two separate implementat
 
 These designs were built to serve as foundational structures for experimenting with **optimal open addressing** strategies, particularly those described in *"Optimal Bounds for Open Addressing Without Reordering."*
 
-### Benchmark Results (2^20 entries at 70% capacity)
+### Benchmark Results (s^20 entries at 70% capacity)
 
 | Run | Dictionary Fill | Dictionary Lookup | LinearTable Fill | LinearTable Lookup | UniformTable Fill | UniformTable Lookup |
 |-----|-----------------|-------------------|------------------|--------------------|-------------------|----------------------|
-| 1   | 932 ms          | 468 ms            | 2525 ms          | 462 ms             | 2584 ms           | 499 ms               |
-| 2   | 915 ms          | 408 ms            | 2483 ms          | 522 ms             | 2521 ms           | 455 ms               |
-| 3   | 893 ms          | 395 ms            | 2309 ms          | 427 ms             | 2520 ms           | 426 ms               |
-| 4   | 853 ms          | 435 ms            | 2390 ms          | 418 ms             | 2619 ms           | 557 ms               |
-| 5   | 969 ms          | 402 ms            | 2448 ms          | 467 ms             | 2592 ms           | 485 ms               |
-| 6   | 850 ms          | 419 ms            | 2437 ms          | 469 ms             | 2634 ms           | 488 ms               |
-| 7   | 923 ms          | 408 ms            | 2453 ms          | 451 ms             | 2551 ms           | 466 ms               |
+| 1   | 367 ms          | 127 ms            | 525 ms           | 213 ms             | 587 ms            | 195 ms               |
+| 2   | 264 ms          | 118 ms            | 413 ms           | 184 ms             | 562 ms            | 175 ms               |
+| 3   | 252 ms          | 112 ms            | 398 ms           | 183 ms             | 535 ms            | 186 ms               |
+| 4   | 274 ms          | 158 ms            | 448 ms           | 209 ms             | 551 ms            | 167 ms               |
+| 5   | 292 ms          | 130 ms            | 405 ms           | 195 ms             | 530 ms            | 168 ms               |
+| 6   | 268 ms          | 158 ms            | 458 ms           | 205 ms             | 523 ms            | 173 ms               |
+| 7   | 307 ms          | 161 ms            | 430 ms           | 198 ms             | 510 ms            | 181 ms               |
+| 8   | 267 ms          | 143 ms            | 440 ms           | 191 ms             | 522 ms            | 183 ms               |
+| 9   | 398 ms          | 209 ms            | 503 ms           | 182 ms             | 517 ms            | 179 ms               |
+| 10  | 339 ms          | 131 ms            | 438 ms           | 203 ms             | 566 ms            | 202 ms               |
+
 
 ### Benchmark Results (2^20 entries at 99% capacity)
 
@@ -81,7 +85,7 @@ These designs were built to serve as foundational structures for experimenting w
 
 ### Observations (Based on 99% Load Factor Benchmarks)
 
-- All tables demonstrate the expected **O(log δ⁻¹)** amortized probe complexity under high load, with no lookup failures across ~1 million entries.
+- Uniform table demonstrates the expected **O(log δ⁻¹)** amortized probe complexity under high load, with no lookup failures across ~1 million entries.
 - The **UniformTable** now **outperforms the LinearTable** significantly in **lookup speed**, cutting average probe time nearly in half. This confirms the benefits of its uniform probing strategy in high-density scenarios.
 - The **fill times** for UniformTable are still slower than `Dictionary` but **markedly better than LinearTable**, suggesting better memory access patterns and fewer long probe chains.
 - Remaining areas for potential optimization:
