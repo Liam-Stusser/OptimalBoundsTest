@@ -1,6 +1,9 @@
+using K4os.Hash.xxHash;
+using System.Text;
 using System.Runtime.CompilerServices;
 
-public class LinearTable<TKey, TValue> 
+namespace OptimizedHashTable.Tables;
+public class LinearTable<TKey, TValue> : IHashTable<TKey, TValue>
 {
     private struct Entry
     {
@@ -14,38 +17,43 @@ public class LinearTable<TKey, TValue>
 
     public LinearTable(int size)
     {
-        if(size <= 0 || (size & (size - 1)) != 0)
-        {
+        if (size <= 0 || (size & (size - 1)) != 0)
             throw new ArgumentException("Size must be a positive power of 2");
-        }
+
         entries = new Entry[size];
     }
 
     //hash function
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe ulong HashKey(TKey key)
+    public static unsafe ulong HashKey(TKey key)
     {
-        ulong h = (ulong)key.GetHashCode();
-        h ^= h >> 33;
-        h *= 0xff51afd7ed558ccd;
-        h ^= h >> 33;
-        h *= 0xc4ceb9fe1a85ec53;
-        h ^= h >> 33;
-        return h;
+        if (key is string s)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(s);
+            return XXH64.DigestOf(bytes);
+        }
+        else if (typeof(TKey).IsValueType)
+        {
+            void* ptr = Unsafe.AsPointer(ref key);
+            return XXH64.DigestOf((byte*)ptr, Unsafe.SizeOf<TKey>());
+        }
+
+        return (ulong)key!.GetHashCode();
     }
 
-    public void Insert(TKey key, TValue value)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe void Insert(TKey key, TValue value)
     {
-        ulong hash  = HashKey(key);
-        int index = (int)(hash & ((ulong)entries.Length-1));
+        ulong hash = HashKey(key);
+        int index = (int)(hash & ((ulong)entries.Length - 1));
         int count = 0;
-        
+
         //Find empty slot for key/probe
-        for(int i = 0; i < entries.Length; i++)
+        for (int i = 0; i < entries.Length; i++)
         {
             int probeIndex = (index + i) & (entries.Length - 1);
 
-            if(!entries[probeIndex].Occupied)//Check collision 
+            if (!entries[probeIndex].Occupied)//Check collision 
             {
                 entries[probeIndex].key = key;
                 entries[probeIndex].value = value;
@@ -58,20 +66,21 @@ public class LinearTable<TKey, TValue>
         }
         throw new InvalidOperationException("Hash Table is Full!");
     }
-    
-    public TValue GetValue(TKey key)
-    {
-        ulong hash  = HashKey(key);
-        int index = (int)(hash & ((ulong)entries.Length-1));
 
-        for(int i = 0; i < entries.Length; i++)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe TValue GetValue(TKey key)
+    {
+        ulong hash = HashKey(key);
+        int index = (int)(hash & ((ulong)entries.Length - 1));
+
+        for (int i = 0; i < entries.Length; i++)
         {
             int probeIndex = (index + i) & (entries.Length - 1);
 
-            if(!entries[probeIndex].Occupied)
+            if (!entries[probeIndex].Occupied)
                 throw new KeyNotFoundException("key index pointer is empty");
 
-            if(EqualityComparer<TKey>.Default.Equals(entries[probeIndex].key, key))
+            if (EqualityComparer<TKey>.Default.Equals(entries[probeIndex].key, key))
                 return entries[probeIndex].value;
         }
 
