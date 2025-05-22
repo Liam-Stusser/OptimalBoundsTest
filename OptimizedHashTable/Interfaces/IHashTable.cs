@@ -1,4 +1,4 @@
-namespace OptimizedHashTable.Tables
+namespace OptimizedHashTable.Interfaces
 
 {
     public interface IHashTable<TKey, TValue>

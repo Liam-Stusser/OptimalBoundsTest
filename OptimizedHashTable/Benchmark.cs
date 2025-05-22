@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
-using OptimizedHashTable.Tables;
+using OptimizedHashTable.Interfaces;
 
 namespace OptimizedHashTables;
+
 public class BenchmarkResult
 {
     public string Name;
@@ -12,8 +13,9 @@ public class BenchmarkResult
 
 public static class Benchmark
 {
-    private const int InsertCount = 1048575;
     private const int Capacity = 1048576;
+    private const int InsertCount = 943718;
+    
     private static readonly byte[] buffer = new byte[8];
 
     private static ulong NextULong(Random rng)

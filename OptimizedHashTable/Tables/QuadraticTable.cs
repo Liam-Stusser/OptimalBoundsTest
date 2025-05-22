@@ -1,8 +1,10 @@
 using K4os.Hash.xxHash;
-using System.Runtime.CompilerServices;
 using System.Text;
+using System.Runtime.CompilerServices;
+using OptimizedHashTable.Interfaces;
 
 namespace OptimizedHashTable.Tables;
+
 public class QuadraticTable<TKey, TValue> : IHashTable<TKey, TValue>
 {
     private struct Entry
