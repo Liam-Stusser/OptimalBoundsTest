@@ -1,11 +1,12 @@
 ﻿using System.Diagnostics;
 using OptimizedHashTable.Interfaces;
+using OptimizedHashTable.Tables;
 
 namespace OptimizedHashTables;
 
 public class BenchmarkResult
 {
-    public string Name;
+    public string Name { get; set; } = string.Empty;
     public List<long> FillTimes = new();
     public List<long> LookupTimes = new();
     public List<int> FoundCounts = new();
@@ -14,8 +15,8 @@ public class BenchmarkResult
 public static class Benchmark
 {
     private const int Capacity = 1048576;
-    private const int InsertCount = 943718;
-    
+    private const int InsertCount = 1038576;
+
     private static readonly byte[] buffer = new byte[8];
 
     private static ulong NextULong(Random rng)
@@ -91,6 +92,94 @@ public static class Benchmark
 
             var rng = new Random(42);
             var dict = new Dictionary<ulong, string>(InsertCount);
+
+            var fillWatch = Stopwatch.StartNew();
+            for (int i = 0; i < InsertCount; i++)
+            {
+                dict[NextULong(rng)] = "Loc" + i;
+            }
+            fillWatch.Stop();
+            result.FillTimes.Add(fillWatch.ElapsedMilliseconds);
+
+            rng = new Random(42);
+            int found = 0;
+            var lookupWatch = Stopwatch.StartNew();
+            for (int i = 0; i < InsertCount; i++)
+            {
+                if (dict.ContainsKey(NextULong(rng)))
+                    found++;
+            }
+            lookupWatch.Stop();
+            result.LookupTimes.Add(lookupWatch.ElapsedMilliseconds);
+            result.FoundCounts.Add(found);
+        }
+
+        return result;
+    }
+
+    public static BenchmarkResult RunLinearTable()
+    {
+        var result = new BenchmarkResult { Name = "LinearTable" };
+
+        var warmup = new LinearTable<ulong, string>(Capacity);
+        var warmupRng = new Random(42);
+        for (int i = 0; i < 1000; i++)
+        {
+            warmup[NextULong(warmupRng)] = "Loc" + i;
+        }
+
+        for (int trial = 0; trial < 10; trial++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            var rng = new Random(42);
+            var dict = new LinearTable<ulong, string>(Capacity);
+
+            var fillWatch = Stopwatch.StartNew();
+            for (int i = 0; i < InsertCount; i++)
+            {
+                dict[NextULong(rng)] = "Loc" + i;
+            }
+            fillWatch.Stop();
+            result.FillTimes.Add(fillWatch.ElapsedMilliseconds);
+
+            rng = new Random(42);
+            int found = 0;
+            var lookupWatch = Stopwatch.StartNew();
+            for (int i = 0; i < InsertCount; i++)
+            {
+                if (dict.ContainsKey(NextULong(rng)))
+                    found++;
+            }
+            lookupWatch.Stop();
+            result.LookupTimes.Add(lookupWatch.ElapsedMilliseconds);
+            result.FoundCounts.Add(found);
+        }
+
+        return result;
+    }
+
+    public static BenchmarkResult RunElasticTable()
+    {
+        var result = new BenchmarkResult { Name = "LinearTable" };
+
+        var warmup = new ElasticTable<ulong, string>(Capacity);
+        var warmupRng = new Random(42);
+        for (int i = 0; i < 1000; i++)
+        {
+            warmup[NextULong(warmupRng)] = "Loc" + i;
+        }
+
+        for (int trial = 0; trial < 10; trial++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            var rng = new Random(42);
+            var dict = new ElasticTable<ulong, string>(Capacity);
 
             var fillWatch = Stopwatch.StartNew();
             for (int i = 0; i < InsertCount; i++)

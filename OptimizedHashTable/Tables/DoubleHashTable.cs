@@ -54,7 +54,7 @@ public class DoubleHashTable<TKey, TValue> : IHashTable<TKey, TValue>
         b ^= b >> 33;
         b *= 0xc4ceb9fe1a85ec53UL;
         b ^= b >> 33;
-        return b | 1; // ensure odd number for full table traversal
+        return b | 1; 
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
